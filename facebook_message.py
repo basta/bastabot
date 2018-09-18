@@ -10,6 +10,18 @@ password = "bastarbot2018"
 is_facebook_loaded = False
 
 
+def send_credentials(email, password):
+    try:
+        email_element = driver.find_element_by_xpath("//input[@id='email']")
+        password_element = driver.find_element_by_xpath("//input[@id='pass']")
+        email_element.send_keys(email)
+        password_element.send_keys(password)
+        email_element.send_keys(Keys.RETURN)
+    except selenium.common.exceptions.ElementNotVisibleException:
+        print("Error: Credentials element not foudn. Trying again...")
+        send_credentials(email, password)
+
+
 def load(email, password, background=True):
     global driver
 
@@ -20,7 +32,6 @@ def load(email, password, background=True):
 
     elif not background:
         driver = webdriver.Chrome()
-
 
     driver.get("http://www.messenger.com")
 

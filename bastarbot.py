@@ -5,7 +5,7 @@ import time
 email = "bastarbot@gmail.com"
 password = "bastarbot2018"
 
-first_lesson_seconds = 24900
+first_lesson_seconds = 27300
 period = 1
 
 
@@ -34,7 +34,7 @@ class User(object):
         send_message(self.page, "Index Group mismatch")
         return False
 
-    def day_hours(self, day_index, ):
+    def day_hours(self, day_index, Rozvrhy):
         rozvrh = Rozvrhy[self.classname].get()
         wday = day_index
         day_hours = []
@@ -70,8 +70,6 @@ lesson_starts = \
      10: [14, 50],
      11: [15, 40]}
 
-
-current_lesson = 1
 
 
 def create_Rozvrhy(users):
@@ -111,39 +109,93 @@ def is_send_time(index):
         return True
 
 
-def mainloop(email, password, users, custom_time=False):
-    load(email, password)
+def mainloop(email, password, users, Rozvrhy=[], custom_time=False, background=True, testing=False, output_to_log = False):
+    load(email, password, background=background)
 
-    while True:
-        #Sending timetables
-        time_now = day_seconds(time.localtime())
-        day = time.localtime().tm_wday
+    if not Rozvrhy:
+        Rozvrhy = create_Rozvrhy(users)
+        for i in Rozvrhy.values():
+            i.get()
 
-        if custom_time:
-            time_now = custom_time
-            if type(time_now) != int:
-                raise ValueError("Custom time must be integer")
+    if output_to_log:
+        log = open("log.txt", "a")
 
-        for i in lesson_starts.keys():
-            if abs(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40*60 - time_now) <= 0.5:
-                for user in users:
-                    user.send_lesson(i)
-                    if i == 1:
-                        user.send("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru! (PS: Pozdravuj ode mě Baštu)" %
-                                  (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
-                break
+    if not testing:
+        while True:
 
-            print(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40*60 - time_now)
-        time.sleep(1)
+            #Sending timetables
+            time_now = day_seconds(time.localtime())
+            day = time.localtime().tm_wday
 
+            if custom_time:
+                time_now = custom_time
+                if type(time_now) != int:
+                    raise ValueError("Custom time must be integer")
+
+            for i in lesson_starts.keys():
+                if abs(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40*60 - time_now) <= 0.5:
+                    for user in users:
+                        user.send_lesson(i, Rozvrhy)
+                        if i == 1:
+                            user.send("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
+                                      (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
+
+                                else:
+                                    log.write("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
+                                              (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
+
+                    break
+
+                print(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40*60 - time_now)
+            time.sleep(1)
+    else:
+        for custom_time in lesson_starts_seconds:
+        # Sending timetables
+            time_now = day_seconds(time.localtime())
+            day = time.localtime().tm_wday
+
+            if custom_time:
+                time_now = custom_time
+                if type(time_now) != int:
+                    raise ValueError("Custom time must be integer")
+
+            for i in lesson_starts.keys():
+                if abs(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40 * 60 - time_now) <= 0.5:
+
+                    for user in users:
+                        user.send_lesson(i, Rozvrhy)
+
+                        if i == 1:
+                            if not output_to_log:
+                                user.send("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
+                                      (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
+
+                            else:
+                                log.write("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
+                                          (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
+
+                    break
+
+                print(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40 * 60 - time_now)
+            time.sleep(1)
+
+
+lesson_starts_seconds = ["empty for indexing"]
+for i in lesson_starts.values():
+    lesson_starts_seconds.append(time_to_seconds(i[0], [1], 0))
 
 if __name__ == "__main__":
-    #Uncomment to enable testing
+    mainloop(email, password, users, custom_time=first_lesson_seconds, background=False)
 
-    Rozvrhy = create_Rozvrhy(users)
-    for i in Rozvrhy.values():
-        i.get()
-    mainloop(email, password, test_users, custom_time=first_lesson_seconds)
+
+
+
+
+
+
+
+
+
 
 
 

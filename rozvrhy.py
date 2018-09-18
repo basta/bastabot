@@ -163,7 +163,7 @@ class Rozvrh(object):
             index = -1
             while self.value[day][index].name != "Volná hodina":
                 index += -1
-            self.value[day][index] = self.value[day][:-index]
+            self.value[day] = self.value[day][:-index]
 
 
 class Hour(object):
@@ -289,7 +289,6 @@ def get_rozvrh(trida):
                     teacher = "N/A"
                     room = "N/A"
                     day.append(Hour(name, teacher, room, index))
-
 
                 else:
                     day.append(Hour("-----", "-----", "-----", index))
