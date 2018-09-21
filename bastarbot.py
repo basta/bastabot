@@ -108,6 +108,10 @@ def is_send_time(index):
     if abs(start_time + 45 * 60 - seconds_now) <= 60:
         return True
 
+lesson_starts_seconds = [0]
+for i in lesson_starts.values():
+    lesson_starts_seconds.append(time_to_seconds(i[0], i[1], 0) + 40*60)
+
 
 def mainloop(email, password, users, Rozvrhy=[], custom_time=False, background=True, testing=False, output_to_log = False):
     load(email, password, background=background)
@@ -137,13 +141,13 @@ def mainloop(email, password, users, Rozvrhy=[], custom_time=False, background=T
                     for user in users:
                         user.send_lesson(i, Rozvrhy)
                         if i == 1:
-                            user.send("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
+                            if not output_to_log:
+                                user.send("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
                                       (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
 
-                                else:
-                                    log.write("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
-                                              (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
-
+                            else:
+                                log.write("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
+                                          (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
                     break
 
                 print(time_to_seconds(lesson_starts[i][0], lesson_starts[i][1], 0) + 40*60 - time_now)
@@ -168,11 +172,11 @@ def mainloop(email, password, users, Rozvrhy=[], custom_time=False, background=T
                         if i == 1:
                             if not output_to_log:
                                 user.send("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
-                                      (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
+                                      (user.name, nice_strlist([x.name for x in user.day_hours(day, Rozvrh[user.classname])])))
 
                             else:
                                 log.write("Ahoj, %s, dnes tě čeká: \n %s \n Hodně zdaru!" %
-                                          (user.name, nice_strlist([x.name for x in user.day_hours(day)])))
+                                          (user.name, nice_strlist([x.name for x in user.day_hours(day, Rozvrh[user.classname])])))
 
                     break
 
@@ -180,9 +184,6 @@ def mainloop(email, password, users, Rozvrhy=[], custom_time=False, background=T
             time.sleep(1)
 
 
-lesson_starts_seconds = ["empty for indexing"]
-for i in lesson_starts.values():
-    lesson_starts_seconds.append(time_to_seconds(i[0], [1], 0))
 
 if __name__ == "__main__":
     mainloop(email, password, users, custom_time=first_lesson_seconds, background=False)

@@ -5,6 +5,14 @@ from lxml import html
 import time
 
 
+def clean_end(self):
+    for day in range(len(self.value)):
+        index = -1
+        while self.value[day][index].name != "Volná hodina":
+            index += -1
+        self.value[day] = self.value[day][:-index]
+
+
 def day_seconds(struct_time):
     hour = struct_time.tm_hour
     minute = struct_time.tm_min
@@ -13,6 +21,14 @@ def day_seconds(struct_time):
 
 
 class Rozvrh(object):
+    def __str__(self):
+        rozvrh = self.get()
+        out = ""
+        for i in rozvrh:
+            out += str([x.name for x in i])
+            out += "\n"
+        return out
+
     def __init__(self, classname):
         self.classname = classname
         self.is_first = True
@@ -46,6 +62,7 @@ class Rozvrh(object):
             index = 0
             for lesson in day_element:
                 try:
+                    temp = lesson[0]
                     # Classic lesson
                     if lesson[0].get("class") == "r_bunka":
                         group = "default"
@@ -66,7 +83,7 @@ class Rozvrh(object):
                         day.append(Hour(name, teacher, room, index))
 
                     # Divided lessons
-                    elif "r_bunka_" in lesson[0].get("class"):
+                    elif "r_bunka_" in temp.get("class"):
                         for cell in lesson[0]:
                             name = (cell[0].get("title"))
                             teacher = (cell[0][1].get("title"))
@@ -167,7 +184,7 @@ class Rozvrh(object):
 
 
 class Hour(object):
-    def __init__(self, name, teacher, room, index, group = "default", changed = False):
+    def __init__(self, name, teacher, room, index, group = "default", changed=False):
         self.name = name
         self.teacher = teacher
         self.room = room
@@ -203,6 +220,7 @@ def get_rozvrh(trida):
         index = 0
         for lesson in day_element:
             try:
+                temp = lesson[0]
                 #Classic lesson
                 if lesson[0].get("class") == "r_bunka":
                     group = "default"
@@ -223,7 +241,7 @@ def get_rozvrh(trida):
                     day.append(Hour(name, teacher, room, index))
 
                 #Divided lessons
-                elif "r_bunka_" in lesson[0].get("class"):
+                elif "r_bunka_" in temp.get():
                     for cell in lesson[0]:
                         name = (cell[0].get("title"))
                         teacher = (cell[0][1].get("title"))
@@ -305,3 +323,7 @@ def get_rozvrh(trida):
     days = days[1:]
     driver.close()
     return days
+
+
+if __name__ == "__main__":
+    print(Rozvrh("6.E"))
